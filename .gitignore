@@ -8,3 +8,6 @@
 /ConstructionOPS/ConstructionOPS.Server/appsettings.json
 /ConstructionOPS/ConstructionOPS.Server/appsettings.Development.json
 /ConstructionOPS/ConstructionOPS.Server/Properties
+/ConstructionOPS/ConstructionOPS.Server/bin/Debug/net10.0
+/ConstructionOPS/constructionops.client/obj/Debug
+/ConstructionOPS/constructionops.client/package-lock.json
