@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/ConstructionOPS/.vs
+/ConstructionOPS/ConstructionOPS.Server/obj/Debug/net10.0
+/ConstructionOPS/ConstructionOPS.Server/obj
+/ConstructionOPS/ConstructionOPS.Server/appsettings.json
+/ConstructionOPS/ConstructionOPS.Server/appsettings.Development.json
+/ConstructionOPS/ConstructionOPS.Server/Properties
