@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="constructionops.client/constructionops.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="ConstructionOPS.Server/ConstructionOPS.Server.csproj" />
+</Solution>
