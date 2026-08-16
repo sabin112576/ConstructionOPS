@@ -2,7 +2,7 @@
 
 namespace ConstructionOPS.Server.Infrastructure.Database;
 
-public sealed class DbConnectionFactory
+public sealed class DbConnectionFactory : IDbConnectionFactory
 {
     private readonly string _connectionString;
 
