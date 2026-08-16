@@ -11,7 +11,7 @@ public sealed class ProjectService : IProjectService
     // Temporary development tenant.
     // Authentication will replace this.
     private static readonly Guid TenantId =
-        Guid.Parse("YOUR-TENANT-ID");
+        Guid.Parse("5870d0be-9c37-4ef6-b369-77c039b16b6a");
 
     public ProjectService(
         IProjectRepository repository)

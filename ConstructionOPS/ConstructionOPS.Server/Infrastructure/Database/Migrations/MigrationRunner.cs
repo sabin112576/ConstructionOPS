@@ -8,7 +8,8 @@ public sealed class MigrationRunner
 {
     private readonly IDbConnectionFactory _connectionFactory;
 
-    public MigrationRunner(IDbConnectionFactory connectionFactory)
+    public MigrationRunner(
+        IDbConnectionFactory connectionFactory)
     {
         _connectionFactory = connectionFactory;
     }
@@ -16,20 +17,25 @@ public sealed class MigrationRunner
     public async Task MigrateAsync(
         CancellationToken cancellationToken = default)
     {
-        using var connection = _connectionFactory.CreateConnection();
+        await using var connection =
+            _connectionFactory.CreateConnection();
 
         await connection.OpenAsync(cancellationToken);
 
+        // Migration history table
         await connection.ExecuteAsync(
             """
-            CREATE TABLE IF NOT EXISTS schema_migrations
+            CREATE SCHEMA IF NOT EXISTS audit;
+
+            CREATE TABLE IF NOT EXISTS audit.schema_migration
             (
-                version VARCHAR(50) PRIMARY KEY,
+                version VARCHAR(100) PRIMARY KEY,
                 applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             );
             """);
 
-        var assembly = Assembly.GetExecutingAssembly();
+        var assembly =
+            Assembly.GetExecutingAssembly();
 
         var migrations = assembly
             .GetManifestResourceNames()
@@ -39,18 +45,23 @@ public sealed class MigrationRunner
 
         foreach (var migration in migrations)
         {
-            var version = ExtractVersion(migration);
+            var version =
+                ExtractVersion(migration);
 
-            var alreadyApplied = await connection.ExecuteScalarAsync<bool>(
-                """
-                SELECT EXISTS
-                (
-                    SELECT 1
-                    FROM schema_migrations
-                    WHERE version = @Version
-                );
-                """,
-                new { Version = version });
+            var alreadyApplied =
+                await connection.ExecuteScalarAsync<bool>(
+                    """
+                    SELECT EXISTS
+                    (
+                        SELECT 1
+                        FROM audit.schema_migration
+                        WHERE version = @Version
+                    );
+                    """,
+                    new
+                    {
+                        Version = version
+                    });
 
             if (alreadyApplied)
                 continue;
@@ -60,11 +71,16 @@ public sealed class MigrationRunner
                 ?? throw new InvalidOperationException(
                     $"Migration '{migration}' could not be loaded.");
 
-            using var reader = new StreamReader(stream);
+            using var reader =
+                new StreamReader(stream);
 
-            var sql = await reader.ReadToEndAsync(cancellationToken);
+            var sql =
+                await reader.ReadToEndAsync(
+                    cancellationToken);
 
-            using var transaction = connection.BeginTransaction();
+            await using var transaction =
+                await connection.BeginTransactionAsync(
+                    cancellationToken);
 
             try
             {
@@ -74,27 +90,42 @@ public sealed class MigrationRunner
 
                 await connection.ExecuteAsync(
                     """
-                    INSERT INTO schema_migrations(version)
-                    VALUES (@Version);
+                    INSERT INTO audit.schema_migration
+                    (
+                        version
+                    )
+                    VALUES
+                    (
+                        @Version
+                    );
                     """,
-                    new { Version = version },
+                    new
+                    {
+                        Version = version
+                    },
                     transaction);
 
-                transaction.Commit();
+                await transaction.CommitAsync(
+                    cancellationToken);
             }
             catch
             {
-                transaction.Rollback();
+                await transaction.RollbackAsync(
+                    cancellationToken);
+
                 throw;
             }
         }
     }
 
-    private static string ExtractVersion(string resourceName)
+    private static string ExtractVersion(
+        string resourceName)
     {
-        var fileName = resourceName.Split('.')
-            .TakeLast(3)
-            .First();
+        var fileName =
+            resourceName
+                .Split('.')
+                .TakeLast(2)
+                .First();
 
         return fileName;
     }
